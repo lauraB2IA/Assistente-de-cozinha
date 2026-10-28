@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assistente de Cozinha · Reconhecimento de Voz com IA</title>
+  <meta name="description" content="Projeto de reconhecimento de comandos de voz para assistente de cozinha usando redes neurais convolucionais (CNN) com Python e TensorFlow." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── NAV ─────────────────────────────────────────────────────────────────── -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <span class="logo-icon">🎙️</span>
+        <span>AC2 &mdash; Assistente de Cozinha</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#conceitos">Conceitos</a></li>
+        <li><a href="#etapas">Etapas</a></li>
+        <li><a href="#resultados">Resultados</a></li>
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#aplicacoes">Aplicações</a></li>
+      </ul>
+      <button class="nav-cta" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Ver Demo 🎙️</button>
+    </div>
+  </nav>
+
+  <!-- ── HERO ─────────────────────────────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="hero-bg">
+      <canvas id="waveCanvas"></canvas>
+      <div class="hero-glow glow-1"></div>
+      <div class="hero-glow glow-2"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge reveal">🎓 Projeto de Conclusão de Curso</div>
+      <h1 class="hero-title reveal">
+        Reconhecimento de<br/>
+        <span class="gradient-text">Comandos de Voz</span><br/>
+        com Redes Neurais
+      </h1>
+      <p class="hero-subtitle reveal">
+        Um assistente de cozinha que entende você &mdash; mãos livres, totalmente offline,
+        construído do zero com Python e TensorFlow.
+      </p>
+      <div class="hero-stats reveal">
+        <div class="stat-card">
+          <span class="stat-num" data-target="5">0</span>
+          <span class="stat-label">Comandos</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" data-target="153">0</span>
+          <span class="stat-label">Áudios coletados</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" data-target="918">0</span>
+          <span class="stat-label">Amostras (com augmentation)</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" data-target="3" data-suffix=" CNN">0</span>
+          <span class="stat-label">Camadas convolucionais</span>
+        </div>
+      </div>
+      <a href="#conceitos" class="hero-scroll-btn reveal">
+        Explorar o projeto <span>↓</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── CONCEITOS ────────────────────────────────────────────────────────────── -->
+  <section id="conceitos" class="section">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">01 &mdash; Fundamentos</div>
+        <h2>Conceitos Estudados</h2>
+        <p>As tecnologias e técnicas que fundamentam o projeto</p>
+      </div>
+
+      <div class="concepts-grid">
+
+        <div class="concept-card reveal" style="--delay:0ms">
+          <div class="concept-icon">🎵</div>
+          <h3>MFCC</h3>
+          <p class="concept-sub">Mel-Frequency Cepstral Coefficients</p>
+          <p>Representação compacta do áudio que imita a percepção humana de frequências. Extraído com a biblioteca <code>Librosa</code>, captura a "impressão digital" de cada comando.</p>
+          <div class="concept-detail">
+            <span class="tag">40 coeficientes</span>
+            <span class="tag">+ delta</span>
+            <span class="tag">+ delta-delta</span>
+          </div>
+        </div>
+
+        <div class="concept-card reveal" style="--delay:80ms">
+          <div class="concept-icon">🧠</div>
+          <h3>CNN</h3>
+          <p class="concept-sub">Rede Neural Convolucional</p>
+          <p>Arquitetura de deep learning que trata o espectrograma MFCC como uma imagem. As camadas convolucionais aprendem filtros que detectam padrões acústicos específicos de cada comando.</p>
+          <div class="concept-detail">
+            <span class="tag">Conv2D</span>
+            <span class="tag">BatchNorm</span>
+            <span class="tag">Dropout</span>
+          </div>
+        </div>
+
+        <div class="concept-card reveal" style="--delay:160ms">
+          <div class="concept-icon">📊</div>
+          <h3>Normalização</h3>
+          <p class="concept-sub">Z-score por feature</p>
+          <p>Cada feature é centrada em zero com desvio padrão unitário. Isso acelera a convergência e impede que valores grandes dominem o aprendizado. Média e desvio são salvos para inferência.</p>
+          <div class="concept-detail">
+            <span class="tag">μ e σ salvos</span>
+            <span class="tag">inference-safe</span>
+          </div>
+        </div>
+
+        <div class="concept-card reveal" style="--delay:240ms">
+          <div class="concept-icon">🔀</div>
+          <h3>Data Augmentation</h3>
+          <p class="concept-sub">Aumento sintético de dados</p>
+          <p>Técnica que gera variações do áudio original sem novas gravações, tornando o modelo mais robusto a condições reais como ruído ambiente, diferentes vozes e distâncias do microfone.</p>
+          <div class="concept-detail">
+            <span class="tag">Ruído</span>
+            <span class="tag">Pitch Shift</span>
+            <span class="tag">Time Stretch</span>
+            <span class="tag">×6 dados</span>
+          </div>
+        </div>
+
+        <div class="concept-card reveal" style="--delay:320ms">
+          <div class="concept-icon">⚖️</div>
+          <h3>Overfitting & Dropout</h3>
+          <p class="concept-sub">Regularização da rede</p>
+          <p>Overfitting ocorre quando o modelo "decora" o treino sem generalizar. O Dropout desativa neurônios aleatoriamente durante o treino, forçando a rede a aprender representações redundantes e robustas.</p>
+          <div class="concept-detail">
+            <span class="tag">Dropout 20-35%</span>
+            <span class="tag">EarlyStopping</span>
+          </div>
+        </div>
+
+        <div class="concept-card reveal" style="--delay:400ms">
+          <div class="concept-icon">🎯</div>
+          <h3>Softmax & Inferência</h3>
+          <p class="concept-sub">Classificação multiclasse</p>
+          <p>A camada final transforma as ativações em probabilidades que somam 100%. Em tempo real, o áudio do microfone passa pelo mesmo pipeline de extração e o modelo emite a classe com maior probabilidade.</p>
+          <div class="concept-detail">
+            <span class="tag">5 classes</span>
+            <span class="tag">tempo real</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PIPELINE VISUAL ──────────────────────────────────────────────────────── -->
+  <section id="pipeline" class="section section-dark">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">Pipeline</div>
+        <h2>Do Áudio à Decisão</h2>
+        <p>Como o sistema processa cada comando em tempo real</p>
+      </div>
+      <div class="pipeline reveal">
+        <div class="pipe-step">
+          <div class="pipe-icon">🎙️</div>
+          <div class="pipe-label">Microfone</div>
+          <div class="pipe-sub">2 s · 16 kHz · mono</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🌊</div>
+          <div class="pipe-label">MFCC</div>
+          <div class="pipe-sub">40 coef. + Δ + ΔΔ</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">📐</div>
+          <div class="pipe-label">Normalização</div>
+          <div class="pipe-sub">z-score (μ, σ salvos)</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🧠</div>
+          <div class="pipe-label">CNN</div>
+          <div class="pipe-sub">3× Conv · Dense · Softmax</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step pipe-step-result">
+          <div class="pipe-icon">✅</div>
+          <div class="pipe-label">Comando</div>
+          <div class="pipe-sub">classe + confiança %</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ETAPAS ────────────────────────────────────────────────────────────────── -->
+  <section id="etapas" class="section">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">02 &mdash; Desenvolvimento</div>
+        <h2>Etapas do Projeto</h2>
+        <p>Cronologia completa do desenvolvimento</p>
+      </div>
+
+      <div class="timeline">
+
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">1</div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <h3>Definição do problema</h3>
+              <span class="timeline-tag">Planejamento</span>
+            </div>
+            <p>Identificamos a dificuldade de consultar receitas com as mãos ocupadas durante o cozimento. O objetivo foi criar um sistema <strong>offline</strong> que reconhece comandos de voz curtos e associa cada um a uma ação específica na receita.</p>
+            <div class="timeline-classes">
+              <code>iniciar_receita</code>
+              <code>proximo_passo</code>
+              <code>repetir_instrucao</code>
+              <code>finalizar_receita</code>
+              <code>desconhecido</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">2</div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <h3>Coleta de dados</h3>
+              <span class="timeline-tag">Dataset</span>
+            </div>
+            <p>O script <code>coletar_audios.py</code> foi usado para gravar áudios de 2 segundos a 16 kHz. Foram coletadas <strong>~30 gravações por classe</strong>, totalizando 153 amostras, em ambiente controlado mas variado (distâncias e momentos diferentes).</p>
+            <div class="stats-inline">
+              <div class="si-item"><strong>153</strong> WAVs gravados</div>
+              <div class="si-item"><strong>16 kHz</strong> sample rate</div>
+              <div class="si-item"><strong>2 s</strong> por gravação</div>
+              <div class="si-item"><strong>5</strong> classes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">3</div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <h3>Extração de características</h3>
+              <span class="timeline-tag">Feature Engineering</span>
+            </div>
+            <p>Com a biblioteca <strong>Librosa</strong>, cada WAV foi convertido em uma matriz <code>(40 MFCC × T × 3 canais)</code>, onde os 3 canais são o MFCC bruto, o delta (variação temporal de 1ª ordem) e o delta-delta (2ª ordem). Isso fornece contexto temporal ao modelo.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">4</div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <h3>Data Augmentation</h3>
+              <span class="timeline-tag">Melhoria de Acurácia</span>
+            </div>
+            <p>Para compensar o dataset pequeno, cada áudio original gerou <strong>5 cópias sintéticas</strong>, expandindo o dataset de 153 para <strong>918 amostras</strong> (6× mais dados) sem nova coleta.</p>
+            <div class="aug-grid">
+              <div class="aug-item">🔊 Ruído gaussiano</div>
+              <div class="aug-item">⏱️ Time stretch ±15%</div>
+              <div class="aug-item">🎵 Pitch shift ±3 st</div>
+              <div class="aug-item">↔️ Time shift ±20%</div>
+              <div class="aug-item">🔉 Volume ×0.7–1.3</div>
+              <div class="aug-item">🔀 Combinações aleatórias</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">5</div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <h3>Arquitetura da CNN</h3>
+              <span class="timeline-tag">Modelo</span>
+            </div>
+            <p>Modelo Sequential com TensorFlow/Keras. Cada bloco Conv-BN-Pool aprende representações progressivamente mais abstratas do espectrograma. A camada Global Average Pooling substitui o Flatten para reduzir parâmetros.</p>
+            <div class="arch-layers">
+              <div class="arch-layer" style="--w:100%">Input <small>(40 × T × 3)</small></div>
+              <div class="arch-layer" style="--w:90%">Conv2D 32 · BN · MaxPool · Dropout 20%</div>
+              <div class="arch-layer" style="--w:78%">Conv2D 64 · BN · MaxPool · Dropout 25%</div>
+              <div class="arch-layer" style="--w:64%">Conv2D 128 · BN · GlobalAvgPool</div>
+              <div class="arch-layer" style="--w:50%">Dense 128 · Dropout 35%</div>
+              <div class="arch-layer" style="--w:36%">Dense 64 · Dropout 20%</div>
+              <div class="arch-layer arch-layer-out" style="--w:22%">Softmax (5 classes)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">6</div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <h3>Treinamento e avaliação</h3>
+              <span class="timeline-tag">Resultados</span>
+            </div>
+            <p>O dataset foi dividido 80/20 treino/teste (com estratificação). Callbacks de <strong>EarlyStopping</strong> (patience=15) e <strong>ReduceLROnPlateau</strong> evitaram overfitting e ajustaram a taxa de aprendizado automaticamente.</p>
+            <div class="stats-inline">
+              <div class="si-item"><strong>80%</strong> treino</div>
+              <div class="si-item"><strong>20%</strong> validação</div>
+              <div class="si-item"><strong>Adam</strong> lr=1e-3</div>
+              <div class="si-item"><strong>até 100</strong> épocas</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── RESULTADOS ────────────────────────────────────────────────────────────── -->
+  <section id="resultados" class="section section-dark">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">03 &mdash; Avaliação</div>
+        <h2>Resultados</h2>
+        <p>Métricas, gráficos e análise do desempenho do modelo</p>
+      </div>
+
+      <div class="results-tabs reveal">
+        <button class="tab-btn active" data-tab="graficos" id="tab-graficos">📈 Gráficos</button>
+        <button class="tab-btn" data-tab="metricas" id="tab-metricas">📋 Métricas</button>
+        <button class="tab-btn" data-tab="analise" id="tab-analise">🔍 Análise</button>
+      </div>
+
+      <!-- Gráficos -->
+      <div class="tab-content active" id="tab-content-graficos">
+        <div class="graphs-grid reveal">
+          <div class="graph-card">
+            <h4>Matriz de Confusão</h4>
+            <p class="graph-desc">Mostra quantas previsões o modelo acertou (diagonal) e quais classes foram confundidas entre si.</p>
+            <div class="graph-img-wrap">
+              <img src="../resultados/matriz_confusao.png" alt="Matriz de Confusão do modelo de reconhecimento de voz" id="img-matriz" loading="lazy" />
+              <div class="img-placeholder" id="ph-matriz">
+                <span>🖼️</span>
+                <p>Execute <code>treinar_modelo.py</code> para gerar este gráfico</p>
+              </div>
+            </div>
+          </div>
+          <div class="graph-card">
+            <h4>Curvas de Treinamento</h4>
+            <p class="graph-desc">Evolução da acurácia e perda durante o treinamento. Curvas próximas indicam boa generalização sem overfitting.</p>
+            <div class="graph-img-wrap">
+              <img src="../resultados/curvas_treinamento.png" alt="Curvas de acurácia e perda durante o treinamento" id="img-curvas" loading="lazy" />
+              <div class="img-placeholder" id="ph-curvas">
+                <span>📊</span>
+                <p>Execute <code>treinar_modelo.py</code> para gerar este gráfico</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Métricas -->
+      <div class="tab-content" id="tab-content-metricas">
+        <div class="metrics-section reveal">
+          <div class="accuracy-display">
+            <div class="acc-circle">
+              <svg viewBox="0 0 120 120" class="acc-svg">
+                <circle cx="60" cy="60" r="52" class="acc-track"/>
+                <circle cx="60" cy="60" r="52" class="acc-fill" id="accCircle" style="--pct: 0"/>
+              </svg>
+              <div class="acc-text">
+                <span class="acc-num" id="accDisplay">—</span>
+                <span class="acc-label">Acurácia</span>
+              </div>
+            </div>
+            <div class="acc-note">
+              <p>Preencha após rodar o treinamento. Os valores abaixo são editáveis.</p>
+              <input type="number" id="accInput" min="0" max="100" step="0.1" placeholder="Ex: 92.5" class="acc-input" />
+              <button class="acc-btn" onclick="updateAccuracy()">Atualizar</button>
+            </div>
+          </div>
+
+          <div class="metrics-table-wrap">
+            <table class="metrics-table" id="metricsTable">
+              <thead>
+                <tr>
+                  <th>Classe</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1-Score</th>
+                  <th>Acertos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>iniciar_receita</code></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                </tr>
+                <tr>
+                  <td><code>proximo_passo</code></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                </tr>
+                <tr>
+                  <td><code>repetir_instrucao</code></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                </tr>
+                <tr>
+                  <td><code>finalizar_receita</code></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                </tr>
+                <tr>
+                  <td><code>desconhecido</code></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                  <td><input class="metric-in" placeholder="—" /></td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="table-hint">💡 Clique nos campos para preencher com os valores do <code>classification_report</code></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Análise -->
+      <div class="tab-content" id="tab-content-analise">
+        <div class="analysis-grid reveal">
+          <div class="analysis-card analysis-good">
+            <div class="analysis-icon">✅</div>
+            <h4>O que funcionou bem</h4>
+            <ul>
+              <li>MFCC + delta capturou a dinâmica temporal dos comandos</li>
+              <li>BatchNormalization acelerou convergência</li>
+              <li>EarlyStopping evitou overfitting com dataset pequeno</li>
+              <li>Data augmentation aumentou robustez a variações de voz</li>
+              <li>GlobalAveragePooling reduziu parâmetros sem perder precisão</li>
+            </ul>
+          </div>
+          <div class="analysis-card analysis-challenge">
+            <div class="analysis-icon">⚠️</div>
+            <h4>Desafios encontrados</h4>
+            <ul>
+              <li>Dataset pequeno (30 amostras/classe) limitou a generalização inicial</li>
+              <li>Comandos longos como <em>"repetir instrução"</em> podem ser confundidos</li>
+              <li>Sensibilidade ao ruído de fundo em ambientes reais</li>
+              <li>Tempo de inferência com Librosa em tempo real</li>
+            </ul>
+          </div>
+          <div class="analysis-card analysis-improve">
+            <div class="analysis-icon">🚀</div>
+            <h4>Como foi melhorado</h4>
+            <ul>
+              <li>Data Augmentation: 153 → 918 amostras (6× mais dados)</li>
+              <li>Camada Dense extra (128 → 64) para maior capacidade</li>
+              <li>Patience aumentado de 12 → 15 épocas</li>
+              <li>Batch size 16 → 32 (gradiente mais estável)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── APLICAÇÕES ─────────────────────────────────────────────────────────────── -->
+  <section id="aplicacoes" class="section">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">04 &mdash; Impacto</div>
+        <h2>Aplicações Reais e Futuras</h2>
+        <p>O que este projeto pode se tornar</p>
+      </div>
+
+      <div class="apps-grid">
+
+        <div class="app-card app-current reveal" style="--delay:0ms">
+          <div class="app-badge">Atual</div>
+          <div class="app-icon">🍳</div>
+          <h3>Assistente de Cozinha</h3>
+          <p>Controle receitas sem tocar no celular. Avance passos, repita instruções ou finalize o preparo apenas com a voz, ideal durante o manuseio de alimentos.</p>
+          <div class="app-tags">
+            <span>offline</span><span>mãos livres</span><span>privacidade</span>
+          </div>
+        </div>
+
+        <div class="app-card reveal" style="--delay:80ms">
+          <div class="app-badge app-badge-future">Futuro</div>
+          <div class="app-icon">♿</div>
+          <h3>Acessibilidade</h3>
+          <p>Adaptação para usuários com mobilidade reduzida. O sistema pode controlar eletrodomésticos inteligentes, temporizadores e assistentes domésticos com comandos personalizados.</p>
+          <div class="app-tags">
+            <span>inclusão</span><span>IoT</span><span>smart home</span>
+          </div>
+        </div>
+
+        <div class="app-card reveal" style="--delay:160ms">
+          <div class="app-badge app-badge-future">Futuro</div>
+          <div class="app-icon">🏭</div>
+          <h3>Indústria e Logística</h3>
+          <p>Comandos de voz em ambientes industriais onde luvas ou sujeira impedem o toque. Reconhecimento de ordens em chão de fábrica, estoque ou linha de montagem.</p>
+          <div class="app-tags">
+            <span>edge computing</span><span>embarcado</span><span>segurança</span>
+          </div>
+        </div>
+
+        <div class="app-card reveal" style="--delay:240ms">
+          <div class="app-badge app-badge-future">Futuro</div>
+          <div class="app-icon">📱</div>
+          <h3>App Mobile</h3>
+          <p>Integração com um aplicativo de receitas real. O modelo pode ser convertido para TensorFlow Lite e rodar diretamente no celular, sem servidor, com latência mínima.</p>
+          <div class="app-tags">
+            <span>TF Lite</span><span>Android/iOS</span><span>on-device</span>
+          </div>
+        </div>
+
+        <div class="app-card reveal" style="--delay:320ms">
+          <div class="app-badge app-badge-future">Futuro</div>
+          <div class="app-icon">🌍</div>
+          <h3>Múltiplos Idiomas</h3>
+          <p>Com mais dados, o sistema pode aprender comandos em diferentes línguas ou dialetos, tornando-se uma base para assistentes de voz regionalizados e personalizáveis.</p>
+          <div class="app-tags">
+            <span>multilingue</span><span>transfer learning</span>
+          </div>
+        </div>
+
+        <div class="app-card reveal" style="--delay:400ms">
+          <div class="app-badge app-badge-future">Futuro</div>
+          <div class="app-icon">🤖</div>
+          <h3>Transfer Learning</h3>
+          <p>Usar modelos pré-treinados como YAMNet (Google) como base, reduzindo drasticamente a necessidade de dados e aumentando a acurácia para 95%+ com poucas amostras.</p>
+          <div class="app-tags">
+            <span>YAMNet</span><span>TF Hub</span><span>fine-tuning</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DEMO AO VIVO ────────────────────────────────────────────────────────── -->
+  <section id="demo" class="section">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">Demo Ao Vivo</div>
+        <h2>Teste o Modelo Agora</h2>
+        <p>Interface interativa: grave sua voz e veja a IA classificar em tempo real</p>
+      </div>
+
+      <div class="demo-wrapper reveal">
+        <!-- Estado: Gradio não iniciado -->
+        <div class="demo-start" id="demoStart">
+          <div class="demo-start-icon">🎙️</div>
+          <h3>Demo Interativo com Gradio</h3>
+          <p>Para usar o demo, inicie o servidor no terminal e clique em <strong>Carregar Demo</strong>.</p>
+          <div class="demo-cmd">
+            <code id="cmdText">.venv\Scripts\python.exe demo.py</code>
+            <button class="copy-btn" onclick="copyCmd()" id="copyBtn">Copiar</button>
+          </div>
+          <div class="demo-cmds-hint">
+            <span>📁 Execute na pasta do projeto</span>
+            <span>⏳ Aguarde "Running on local URL"</span>
+            <span>🌐 Acesse <strong>localhost:7860</strong></span>
+          </div>
+          <button class="demo-load-btn" onclick="loadDemo()">
+            🔗 Carregar Demo (após iniciar o servidor)
+          </button>
+        </div>
+
+        <!-- Estado: iframe carregado -->
+        <div class="demo-frame-wrap" id="demoFrame" style="display:none">
+          <div class="demo-frame-header">
+            <span class="demo-dot demo-dot-red"></span>
+            <span class="demo-dot demo-dot-yellow"></span>
+            <span class="demo-dot demo-dot-green"></span>
+            <span class="demo-frame-title">🎙️ Assistente de Cozinha — Demo ao Vivo</span>
+            <button class="demo-close-btn" onclick="closeDemo()">Fechar ✕</button>
+          </div>
+          <iframe
+            id="demoIframe"
+            src=""
+            width="100%"
+            height="620"
+            frameborder="0"
+            allow="microphone"
+            title="Demo Gradio"
+          ></iframe>
+        </div>
+      </div>
+
+      <!-- Comandos disponíveis -->
+      <div class="commands-grid reveal">
+        <div class="cmd-card">
+          <span class="cmd-emoji">🍳</span>
+          <span class="cmd-text">iniciar receita</span>
+          <span class="cmd-badge">Comando 1</span>
+        </div>
+        <div class="cmd-card">
+          <span class="cmd-emoji">⏭️</span>
+          <span class="cmd-text">próximo passo</span>
+          <span class="cmd-badge">Comando 2</span>
+        </div>
+        <div class="cmd-card">
+          <span class="cmd-emoji">🔁</span>
+          <span class="cmd-text">repetir instrução</span>
+          <span class="cmd-badge">Comando 3</span>
+        </div>
+        <div class="cmd-card">
+          <span class="cmd-emoji">✅</span>
+          <span class="cmd-text">finalizar receita</span>
+          <span class="cmd-badge">Comando 4</span>
+        </div>
+        <div class="cmd-card cmd-card-unknown">
+          <span class="cmd-emoji">❓</span>
+          <span class="cmd-text">qualquer outra fala</span>
+          <span class="cmd-badge">Desconhecido</span>
+        </div>
+      </div>
+
+      <!-- Dicas de demonstração -->
+      <div class="demo-tips reveal">
+        <h4>💡 Dicas para uma boa demonstração</h4>
+        <div class="tips-grid">
+          <div class="tip">
+            <span class="tip-icon">🎤</span>
+            <p>Fale a <strong>20–40 cm</strong> do microfone</p>
+          </div>
+          <div class="tip">
+            <span class="tip-icon">🔇</span>
+            <p>Ambiente <strong>silencioso</strong> = mais acertos</p>
+          </div>
+          <div class="tip">
+            <span class="tip-icon">🗣️</span>
+            <p>Fale <strong>claramente</strong>, sem pressa</p>
+          </div>
+          <div class="tip">
+            <span class="tip-icon">📊</span>
+            <p>Observe as <strong>barras de confiança</strong> para cada classe</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── CONCLUSÃO ──────────────────────────────────────────────────────────────── -->
+  <section id="conclusao" class="section section-dark section-conclusion">
+    <div class="container">
+      <div class="conclusion-wrap reveal">
+        <div class="conclusion-icon">🎙️</div>
+        <h2>Conclusão</h2>
+        <p>
+          Este projeto demonstra que características acústicas extraídas com Librosa podem ser usadas por uma <strong>CNN</strong> para reconhecer comandos de voz de forma eficaz em um assistente de cozinha.
+          A qualidade do resultado depende da quantidade e variedade do dataset, do ruído do ambiente e da semelhança entre as frases.
+        </p>
+        <p>
+          Com a adição de <strong>Data Augmentation</strong>, o dataset foi expandido 6× sem novas gravações, tornando o modelo significativamente mais robusto.
+          Como evolução natural, transfer learning com modelos pré-treinados e integração mobile representam os próximos passos.
+        </p>
+        <div class="conclusion-tags">
+          <span>Python</span>
+          <span>TensorFlow/Keras</span>
+          <span>Librosa</span>
+          <span>CNN</span>
+          <span>MFCC</span>
+          <span>Data Augmentation</span>
+          <span>scikit-learn</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span>🎙️ AC2 &mdash; Assistente de Cozinha com Reconhecimento de Voz</span>
+        <span>Projeto Técnico · 2026</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
