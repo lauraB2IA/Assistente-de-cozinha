@@ -11,6 +11,7 @@ Abre uma página no navegador com:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import gradio as gr
@@ -169,11 +170,12 @@ with gr.Blocks(title="Assistente de Cozinha · Demo") as demo:
 
 
 if __name__ == "__main__":
+    porta = int(os.environ.get("PORT", 7860))
     demo.launch(
         server_name="0.0.0.0",
-        server_port=7860,
+        server_port=porta,
         share=False,
-        inbrowser=True,
+        inbrowser=False,
         theme=gr.themes.Base(
             primary_hue="violet",
             neutral_hue="slate",
